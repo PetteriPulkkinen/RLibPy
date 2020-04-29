@@ -10,6 +10,6 @@ setup(name='RLibPy',
       licence='MIT',
       packages=find_namespace_packages(),
       install_requires=[
-            'numpy',
+            'numpy', 'gym'
       ],
       zip_safe=False)
