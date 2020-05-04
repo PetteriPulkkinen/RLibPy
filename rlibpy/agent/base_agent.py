@@ -40,6 +40,7 @@ class BaseAgent(object):
                 print('episode {}, Avg reward {:.2f}, Avg steps {}'.format(
                     ep+1, log_reward_sum/n_log, log_steps/n_log))
                 log_reward_sum = 0
+                log_steps = 0
             self.after_episode()
 
     def after_step(self):
