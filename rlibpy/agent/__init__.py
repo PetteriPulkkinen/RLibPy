@@ -1,1 +1,1 @@
-from .q_learning import QLearningAgent, AdaptiveQLearningAgent
+from .q_learning import QLearningAgent

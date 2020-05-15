@@ -1,16 +1,41 @@
-from .base_agent import BaseAgent
-from ..policy.base_policy import BasePolicy
+from rlibpy.agent.base_agent import BaseAgent
+from rlibpy.policy.base_policy import BasePolicy
 
 import gym
 import numpy as np
 
 
 class QLearningAgent(BaseAgent):
-    def __init__(self, environment: gym.Env, policy: BasePolicy, alpha: float, gamma: float, debug=False):
+    def __init__(self, environment: gym.Env, policy: BasePolicy, gamma: float, alpha=None, omega=None, debug=False):
+        """Q-learning algorithm with various different enhancements.
+
+        Enhancement 1:
+            By defining omega in [0, 1] the adaptivity of the alpha parameter is enabled. The adaptivity is based on
+            calculating empirical mean (when omega=1) of the rewards for each state-action pair. To prevent unwanted
+            behaviour alpha should be None to explicitly tell to use adaptive alpha.
+
+        Enhancement 2:
+            This class supports at the moment two different exploration strategies. Those strategies are
+                * Epsilon greedy exploration, and
+                * Upper Confidence bounds
+            The latter strategy should be used only when the algorithm is myopic (gamma=0, omega=1).
+
+        :param environment: OpenAI gym environment
+        :param policy: Exploration policy
+        :param gamma: Discount rate
+        :param alpha: Learning rate (default None)
+        :param omega: Decay factor for learning rate (1:='calculate empirical mean', 0:='alpha=1') (default None)
+        :param debug: Set True if convergence data need to be saved, otherwise False (default False)
+        """
+        assert (alpha is not None) is not (omega is not None), "Either alpha or omega should be defined, define " \
+                                                               "at most one of them, not both"
+
         super().__init__(environment, policy, debug)
         self.environment = environment
         self.policy = policy
+
         self.alpha = alpha
+        self.omega = omega
         self.gamma = gamma
         shape = (environment.observation_space.n, environment.action_space.n)
         self.table = np.zeros(shape=shape, dtype=float)
@@ -21,16 +46,24 @@ class QLearningAgent(BaseAgent):
 
     def act(self, observation, evaluate=False):
         values = self.table[observation]
-        return self.policy.choose(values, evaluate=evaluate)
+        return self.policy.choose(values, observation, evaluate=evaluate)
 
     def update(self, action, observation, next_observation, reward):
         next_act = self.act(next_observation, evaluate=True)
         next_q = self.table[next_observation, next_act]
         current_q = self.table[observation, action]
-        self.table[observation, action] = current_q + self.alpha * (reward + self.gamma * next_q - current_q)
+
+        if self.omega is None:
+            alpha = self.alpha
+        else:
+            alpha = alpha = 1/((1+self.n_table[observation, action])**self.omega)
+
+        self.table[observation, action] = current_q + alpha * (reward + self.gamma * next_q - current_q)
         self.n_table[observation, action] += 1  # count the updates
         if self.debug:
             self.q_hd[observation, action].append(self.table[observation, action])
+
+        self.policy.update(observation=observation, action=action)
 
     def reset(self):
         self.table = np.zeros_like(self.table)
@@ -42,19 +75,3 @@ class QLearningAgent(BaseAgent):
         for i in range(self.environment.observation_space.n):
             for j in range(self.environment.action_space.n):
                 self.q_hd[i, j] = [0]
-
-
-class AdaptiveQLearningAgent(QLearningAgent):
-    def __init__(self, environment: gym.Env, policy: BasePolicy, omega: float, gamma: float, debug=False):
-        super().__init__(environment, policy, alpha=None, gamma=gamma, debug=debug)
-        self.omega = omega
-
-    def update(self, action, observation, next_observation, reward):
-        next_act = self.act(next_observation, evaluate=True)
-        next_q = self.table[next_observation, next_act]
-        current_q = self.table[observation, action]
-        alpha = 1/((1+self.n_table[observation, action])**self.omega)
-        self.table[observation, action] = current_q + alpha * (reward + self.gamma * next_q - current_q)
-        self.n_table[observation, action] += 1  # count the updates
-        if self.debug:
-            self.q_hd[observation, action].append(self.table[observation, action])

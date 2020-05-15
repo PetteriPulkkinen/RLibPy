@@ -13,11 +13,11 @@ class EpsilonGreedy(BasePolicy):
         self.epsilon = epsilon
         self.decay_rate = decay_rate
 
-    def choose(self, values, evaluate=False):
+    def choose(self, action_values, observation, evaluate=False):
         if np.random.rand() > self.epsilon or evaluate:
-            return np.argmax(values)
+            return np.argmax(action_values)
         else:
-            return np.random.randint(values.size)
+            return np.random.randint(action_values.size)
 
     def after_episode(self):
         self.epsilon *= self.decay_rate
