@@ -21,6 +21,9 @@ class UCB(BasePolicy):
         self.n_table = np.zeros((n_obs, n_acts), dtype=int)
 
     def choose(self, action_values, observation, evaluate=False):
+        if evaluate:
+            return np.argmax(action_values)
+
         n_selected = self.n_table[observation]
         with np.errstate(divide='ignore', invalid='ignore'):
             indexes = action_values + self.c * np.sqrt(np.log(self.t[observation])/n_selected)
