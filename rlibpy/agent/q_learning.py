@@ -42,7 +42,12 @@ class QLearningAgent(BaseAgent):
         self.n_table = np.zeros(shape=shape, dtype=int)
 
         self.q_hd = np.empty(shape=shape, dtype=object)  # Historical data of Q-values
+        self.t_hd = np.empty(shape=(
+            environment.observation_space.n,
+            environment.observation_space.n,
+            environment.action_space.n), dtype=object)
         self._initialize_covergence_analytics()
+        self._initialize_transition_analytics()
 
     def act(self, observation, evaluate=False):
         values = self.table[observation]
@@ -62,16 +67,24 @@ class QLearningAgent(BaseAgent):
         self.n_table[observation, action] += 1  # count the updates
         if self.debug:
             self.q_hd[observation, action].append(self.table[observation, action])
+            self.t_hd[observation, next_observation, action].append(reward)
 
         self.policy.update(observation=observation, action=action)
 
     def reset(self):
-        self.table = np.zeros_like(self.table)
+        self.table.fill(0)
         self._initialize_covergence_analytics()
-        self.n_table = np.zeros_like(self.table, dtype=int)
+        self._initialize_transition_analytics()
+        self.n_table.fill(0)
         self.policy.reset()
 
     def _initialize_covergence_analytics(self):
         for i in range(self.environment.observation_space.n):
             for j in range(self.environment.action_space.n):
                 self.q_hd[i, j] = [0]
+
+    def _initialize_transition_analytics(self):
+        for i in range(self.environment.observation_space.n):
+            for j in range(self.environment.observation_space.n):
+                for k in range(self.environment.action_space.n):
+                    self.t_hd[i, j, k] = list()
