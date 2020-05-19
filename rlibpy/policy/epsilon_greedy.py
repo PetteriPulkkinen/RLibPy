@@ -1,6 +1,7 @@
 from .base_policy import BasePolicy
 
 import numpy as np
+import pickle
 
 
 def get_decay_rate(epsilon_start, epsilon_end, num_episodes):
@@ -24,3 +25,18 @@ class EpsilonGreedy(BasePolicy):
 
     def reset(self):
         self.epsilon = self._epsilon_start
+        
+    def save(self, filename):
+        obj = {
+            'epsilon': self.epsilon
+        }
+        
+        with open(filename, 'wb') as out_file:
+            pickle.dump(obj, out_file)
+            
+    def load(self, filename):
+        with open(filename, 'rb') as in_file:
+            obj = pickle.load(in_file)
+    
+        for key, value in obj.items():
+            setattr(self, key, value)

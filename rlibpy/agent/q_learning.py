@@ -1,6 +1,7 @@
 from rlibpy.agent.base_agent import BaseAgent
 from rlibpy.policy.base_policy import BasePolicy
 
+import pickle
 import gym
 import numpy as np
 
@@ -88,3 +89,21 @@ class QLearningAgent(BaseAgent):
             for j in range(self.environment.observation_space.n):
                 for k in range(self.environment.action_space.n):
                     self.t_hd[i, j, k] = list()
+
+    def save(self, filename):
+        obj = {
+            'table': self.table,
+            'n_table': self.n_table,
+            'q_hd': self.q_hd,
+            't_hd': self.t_hd
+        }
+
+        with open(filename, 'wb') as out_file:
+            pickle.dump(obj, out_file)
+
+    def load(self, filename):
+        with open(filename, 'rb') as in_file:
+            obj = pickle.load(in_file)
+
+        for key, value in obj.items():
+            setattr(self, key, value)

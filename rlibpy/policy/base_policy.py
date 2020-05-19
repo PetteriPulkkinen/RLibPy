@@ -11,6 +11,12 @@ class BasePolicy(object):
     def update(self, observation, action):
         pass
 
+    def save(self, filename):
+        pass
+
+    def load(self, filename):
+        pass
+
     def after_step(self):
         pass
 

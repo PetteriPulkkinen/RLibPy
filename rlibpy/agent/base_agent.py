@@ -14,9 +14,10 @@ class BaseAgent(object):
     def update(self, action, observation, next_observation, reward):
         raise NotImplementedError
 
-    def learn(self, n_episodes, max_steps, n_log=1):
+    def learn(self, n_episodes, max_steps, n_log=1, record=False):
         log_reward_sum = 0
         log_steps = 0
+        rewards = list()
         for ep in range(n_episodes):
             observation = self.environment.reset()
             reward_sum = 0
@@ -24,6 +25,7 @@ class BaseAgent(object):
             for st in range(max_steps):
                 action = self.act(observation, evaluate=False)
                 next_observation, reward, done, _ = self.environment.step(action)
+                rewards.append(reward)
 
                 self.update(action, observation, next_observation, reward)
                 observation = next_observation
@@ -42,6 +44,7 @@ class BaseAgent(object):
                 log_reward_sum = 0
                 log_steps = 0
             self.after_episode()
+        return rewards
 
     def after_step(self):
         self.policy.after_step()
@@ -51,6 +54,12 @@ class BaseAgent(object):
 
     def reset(self):
         raise NotImplementedError
+
+    def save(self, filename):
+        pass
+
+    def load(self, filename):
+        pass
 
     def visualize(self):
         pass
