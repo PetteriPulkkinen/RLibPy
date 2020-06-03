@@ -4,6 +4,7 @@ from rlibpy.policy.base_policy import BasePolicy
 import pickle
 import gym
 import numpy as np
+import os
 
 
 class QLearningAgent(BaseAgent):
@@ -97,7 +98,7 @@ class QLearningAgent(BaseAgent):
             'q_hd': self.q_hd,
             't_hd': self.t_hd
         }
-
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
         with open(filename, 'wb') as out_file:
             pickle.dump(obj, out_file)
 
