@@ -63,7 +63,7 @@ class QLearningAgent(BaseAgent):
         if self.omega is None:
             alpha = self.alpha
         else:
-            alpha = alpha = 1/((1+self.n_table[observation, action])**self.omega)
+            alpha = 1/((1+self.n_table[observation, action])**self.omega)
 
         self.table[observation, action] = current_q + alpha * (reward + self.gamma * next_q - current_q)
         self.n_table[observation, action] += 1  # count the updates
